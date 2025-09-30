@@ -1,0 +1,27 @@
+---
+- name: Add user on windows server
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: create user
+      ansible.windows.win_user:
+        name: testuser
+        password: "@ns1ble_P@55w0rd"
+        state: present
+        groups: "Remote Desktop Users"
+        update_password: on_create
+      register: user_creation
+    - name: Display user creation result
+      debug:
+        var: user_creation
+      when: user_creation is defined
+    - name: Ensure user is part of Remote Desktop Users group
+      ansible.windows.win_group_membership:
+        name: "Remote Desktop Users"
+        members: "testuser"
+        state: present
+      when: user_creation is changed or user_creation is not defined
+    - name: Display group membership result
+      debug:
+        msg: "User 'testuser' has been added to 'Remote Desktop Users' group."
+      when: user_creation is changed or user_creation is not defined
